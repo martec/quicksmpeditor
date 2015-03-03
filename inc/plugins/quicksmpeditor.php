@@ -20,7 +20,7 @@ if(!defined("IN_MYBB"))
 	die("Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.");
 }
 
-define('QSE', '1.0.0');
+define('QSE', '1.1.0');
 
 // Plugin info
 function quicksmpeditor_info ()
@@ -105,61 +105,81 @@ function quicksmpeditor_activate()
 
 	$new_template_global['scodebutquick'] = "<script type=\"text/javascript\">
 // <![CDATA[
-	function change_palette()
+	function change_palette(el)
 	{
-		toggleDisplay('colour_palette');
-		e = document.getElementById('colour_palette');
+		toggleDisplay('colour_palette_'+el+'');
+		e = document.getElementById('colour_palette_'+el+'');
 
 		if (e.style.display == 'block')
 		{
-			document.getElementById('bbpalette').value = '{\$lang->quicksmpeditor_hide_fontcolor}';
+			document.getElementById('bbpalette_'+el).value = '{\$lang->quicksmpeditor_hide_fontcolor}';
 		}
 		else
 		{
-			document.getElementById('bbpalette').value = '{\$lang->editor_fontcolor}';
-		}
+			document.getElementById('bbpalette_'+el).value = '{\$lang->editor_fontcolor}';
+		}		
 	}
 // ]]>
 \$(document).ready(function() {
-	if (\$('#quick_reply_form, #quickreply_e').length) {
-		\$('#format-buttons').show();
+	function qsebuttons(qse_area) {
+		button = '<div id=\"colour_palette_'+qse_area+'\" style=\"display: none;\">'+
+			'<dl style=\"clear: left;\">'+
+				'<dt><label style=\"float:left;\">{\$lang->editor_fontcolor}:</label></dt>'+
+				'<dd class=\"color_palette_placeholder_'+qse_area+'\" data-local=\"'+qse_area+'\" data-orientation=\"h\" data-height=\"12\" data-width=\"15\" data-bbcode=\"true\"></dd>'+
+			'</dl>'+
+		'</div>'+
+		'<div class=\"format-buttons\">'+
+			'<input type=\"button\" accesskey=\"b\" value=\" B \" style=\"font-weight:bold; width: 30px\" onclick=\"editor.insert_text(\'[b]\',\'[/b]\', \''+qse_area+'\')\" title=\"{\$lang->editor_bold}\" />'+
+			'<input type=\"button\" accesskey=\"i\" value=\" i \" style=\"font-style:italic; width: 30px\" onclick=\"editor.insert_text(\'[i]\',\'[/i]\', \''+qse_area+'\')\" title=\"{\$lang->editor_italic}\" />'+
+			'<input type=\"button\" accesskey=\"u\" value=\" U \" style=\"text-decoration: underline; width: 30px\" onclick=\"editor.insert_text(\'[u]\',\'[/u]\', \''+qse_area+'\')\" title=\"{\$lang->editor_underline}\" />'+
+			'<input type=\"button\" accesskey=\"s\" value=\" S \" style=\"text-decoration: line-through; width: 30px\" onclick=\"editor.insert_text(\'[s]\',\'[/s]\', \''+qse_area+'\')\" title=\"{\$lang->editor_strikethrough}\" />'+
+			'<select name=\"fontsize\" onchange=\"editor.insert_text(\'[size=\' + this.form.fontsize.options[this.form.fontsize.selectedIndex].value + \']\', \'[/size]\', \''+qse_area+'\');this.form.fontsize.selectedIndex = 2;\" title=\"{\$lang->editor_fontsize}\">'+
+				'<option value=\"1\">1</option>'+
+				'<option value=\"2\">2</option>'+
+				'<option value=\"\" selected=\"selected\">{\$lang->quicksmpeditor_default}</option>'+
+				'<option value=\"3\">3</option>'+
+				'<option value=\"4\">4</option>'+
+				'<option value=\"5\">5</option>'+
+				'<option value=\"6\">6</option>'+
+				'<option value=\"7\">7</option>'+
+			'</select>'+
+			'<input type=\"button\" id=\"bbpalette_'+qse_area+'\" name=\"bbpalette\" value=\"{\$lang->editor_fontcolor}\" onclick=\"change_palette(\''+qse_area+'\');\" title=\"{\$lang->editor_fontcolor}\" />'+
+			'<input type=\"button\" accesskey=\"q\" value=\"Quote\" style=\"width: 50px\" onclick=\"editor.insert_text(\'[quote]\', \'[/quote]\', \''+qse_area+'\')\" title=\"{\$lang->editor_insertquote}\" />'+
+			'<input type=\"button\" accesskey=\"c\" value=\"Code\" style=\"width: 50px\" onclick=\"editor.insert_text(\'[code]\',\'[/code]\', \''+qse_area+'\')\" title=\"{\$lang->editor_code}\" />'+
+			'<input type=\"button\" accesskey=\"l\" value=\"List\" style=\"width: 40px\" onclick=\"editor.insert_text(\'[list]\',\'[/list]\', \''+qse_area+'\')\" title=\"{\$lang->editor_bullist}\" />'+
+			'<input type=\"button\" accesskey=\"o\" value=\"List=1\" style=\"width: 50px\" onclick=\"editor.insert_text(\'[list=1]\',\'[/list]\', \''+qse_area+'\')\" title=\"{\$lang->editor_numlist}\" />'+
+			'<input type=\"button\" accesskey=\"y\"	value=\"[*]\" style=\"width: 40px\" onclick=\"editor.insert_text(\'[*]\',\'\', \''+qse_area+'\')\" title=\"{\$lang->quicksmpeditor_list_item}\" />'+
+			'<input type=\"button\" accesskey=\"p\" value=\"Img\" style=\"width: 40px\" onclick=\"editor.insert_text(\'[img]\',\'[/img]\', \''+qse_area+'\')\" title=\"{\$lang->editor_insertimg}\" />'+
+			'<input type=\"button\" accesskey=\"h\"	value=\"hr\" style=\"width: 30px\" onclick=\"editor.insert_text(\'[hr]\',\'\', \''+qse_area+'\')\" title=\"{\$lang->editor_inserthr}\" />'+
+			'<input type=\"button\" accesskey=\"w\" value=\"URL\" style=\"text-decoration: underline; width: 40px\" onclick=\"editor.insert_text(\'[url]\',\'[/url]\', \''+qse_area+'\')\" title=\"{\$lang->editor_url}\" />'+
+			'<input type=\"button\" accesskey=\"v\" value=\"Video\" style=\"width: 50px\" onclick=\"editor.insert_text(\'[video=]\',\'[/video]\', \''+qse_area+'\')\" title=\"{\$lang->editor_insertvideo}\" />'+
+			'<input type=\"button\" accesskey=\"e\" value=\"Email\" style=\"width: 50px\" onclick=\"editor.insert_text(\'[email=]\',\'[/email]\', \''+qse_area+'\')\" title=\"{\$lang->editor_email}\" />'+
+		'</div>';	
+		return button;
 	}
+	if (\$('#quick_reply_form, #quickreply_e').length) {
+		qse_area = 'message';
+		\$(qsebuttons(qse_area)).insertBefore(\"#\"+qse_area+\"\");
+	}
+	(\$.fn.on || \$.fn.live).call(\$(document), 'click', '.quick_edit_button', function () {
+		ed_id = \$(this).attr('id');
+		var pid = ed_id.replace( /[^0-9]/g, '');
+		qse_area = 'quickedit_'+pid;
+		\$(qsebuttons(qse_area)).insertBefore('#quickedit_'+pid);
+		setTimeout(function() {
+			\$('.color_palette_placeholder_'+qse_area).each(function() {
+				registerPalette(\$(this),\$(this).attr('data-local'));
+			});
+			\$('#quickedit_'+pid).focus();
+			offset = \$('#quickedit_'+pid).offset().top - 60;
+			\$('html, body').animate({
+				scrollTop: offset
+			}, 700);
+		},400);
+	});
 });
 </script>
-<script type=\"text/javascript\" src=\"{\$mybb->asset_url}/jscripts/editor.min.js?ver=".QSE."\"></script>
-<div id=\"colour_palette\" style=\"display: none;\">
-	<dl style=\"clear: left;\">
-		<dt><label>{\$lang->editor_fontcolor}:</label></dt>
-		<dd id=\"color_palette_placeholder\" data-orientation=\"h\" data-height=\"12\" data-width=\"15\" data-bbcode=\"true\"></dd>
-	</dl>
-</div>
-<div id=\"format-buttons\" style=\"display: none;\">
-	<input type=\"button\" accesskey=\"b\" value=\" B \" style=\"font-weight:bold; width: 30px\" onclick=\"editor.insert_text('[b]','[/b]')\" title=\"{\$lang->editor_bold}\" />
-	<input type=\"button\" accesskey=\"i\" value=\" i \" style=\"font-style:italic; width: 30px\" onclick=\"editor.insert_text('[i]','[/i]')\" title=\"{\$lang->editor_italic}\" />
-	<input type=\"button\" accesskey=\"u\" value=\" U \" style=\"text-decoration: underline; width: 30px\" onclick=\"editor.insert_text('[u]','[/u]')\" title=\"{\$lang->editor_underline}\" />
-	<input type=\"button\" accesskey=\"s\" value=\" S \" style=\"text-decoration: line-through; width: 30px\" onclick=\"editor.insert_text('[s]','[/s]')\" title=\"{\$lang->editor_strikethrough}\" />
-	<select class=\"bbcode-size\" name=\"fontsize\" onchange=\"editor.insert_text('[size=' + this.form.fontsize.options[this.form.fontsize.selectedIndex].value + ']', '[/size]');this.form.fontsize.selectedIndex = 2;\" title=\"{\$lang->editor_fontsize}\">
-		<option value=\"1\">1</option>
-		<option value=\"2\">2</option>
-		<option value=\"\" selected=\"selected\">{\$lang->quicksmpeditor_default}</option>
-		<option value=\"3\">3</option>
-		<option value=\"4\">4</option>
-		<option value=\"5\">5</option>
-		<option value=\"6\">6</option>
-		<option value=\"7\">7</option>
-	</select>
-	<input type=\"button\" name=\"bbpalette\" id=\"bbpalette\" value=\"Font colour\" onclick=\"change_palette();\" title=\"{\$lang->editor_fontcolor}\" />
-	<input type=\"button\" accesskey=\"q\" value=\"Quote\" style=\"width: 50px\" onclick=\"editor.insert_text('[quote]','[/quote]')\" title=\"{\$lang->editor_insertquote}\" />
-	<input type=\"button\" accesskey=\"c\" value=\"Code\" style=\"width: 50px\" onclick=\"editor.insert_text('[code]','[/code]')\" title=\"{\$lang->editor_code}\" />
-	<input type=\"button\" accesskey=\"l\" value=\"List\" style=\"width: 40px\" onclick=\"editor.insert_text('[list]','[/list]')\" title=\"{\$lang->editor_bullist}\" />
-	<input type=\"button\" accesskey=\"o\" value=\"List=\" style=\"width: 40px\" onclick=\"editor.insert_text('[list=1]','[/list]')\" title=\"{\$lang->editor_numlist}\" />
-	<input type=\"button\" accesskey=\"y\"	value=\"[*]\" style=\"width: 40px\" onclick=\"editor.insert_text('[*]','')\" title=\"{\$lang->quicksmpeditor_list_item}\" />
-	<input type=\"button\" accesskey=\"p\" value=\"Img\" style=\"width: 40px\" onclick=\"editor.insert_text('[img]','[/img]')\" title=\"{\$lang->editor_insertimg}\" />
-	<input type=\"button\" accesskey=\"h\"	value=\"hr\" style=\"width: 30px\" onclick=\"editor.insert_text('[hr]','')\" title=\"{\$lang->editor_inserthr}\" />
-	<input type=\"button\" accesskey=\"w\" value=\"URL\" style=\"text-decoration: underline; width: 40px\" onclick=\"editor.insert_text('[url]','[/url]')\" title=\"{\$lang->editor_url}\" />
-	<input type=\"button\" accesskey=\"v\" value=\"Video\" style=\"width: 50px\" onclick=\"editor.insert_text('[video=]','[/video]')\" title=\"{\$lang->editor_insertvideo}\" />
-	<input type=\"button\" accesskey=\"e\" value=\"Email\" style=\"width: 50px\" onclick=\"editor.insert_text('[email=]','[/email]')\" title=\"{\$lang->editor_email}\" />
-</div>";
+<script type=\"text/javascript\" src=\"{\$mybb->asset_url}/jscripts/editor.min.js?ver=".QSE."\"></script>";
 
 	foreach($new_template_global as $title => $template)
 	{
@@ -168,9 +188,9 @@ function quicksmpeditor_activate()
 	}
 
 	find_replace_templatesets(
-		'showthread_quickreply',
-		'#' . preg_quote('<textarea') . '#i',
-		'{$scodebutquick}<textarea'
+		'showthread',
+		'#' . preg_quote('{$footer}') . '#i',
+		'{$footer}{$scodebutquick}'
 	);
 
 	find_replace_templatesets(
@@ -200,9 +220,9 @@ function quicksmpeditor_deactivate()
 	$db->delete_query("templates", "title IN('scodebutquick')");
 
 	find_replace_templatesets(
-		'showthread_quickreply',
-		'#' . preg_quote('{$scodebutquick}<textarea') . '#i',
-		'<textarea'
+		'showthread',
+		'#' . preg_quote('{$footer}{$scodebutquick}') . '#i',
+		'{$footer}'
 	);
 
 	find_replace_templatesets(
@@ -235,10 +255,10 @@ function smpedt_cache_scodebutquick()
 
 	if (THIS_SCRIPT == 'showthread.php' || THIS_SCRIPT == 'private.php') {
 		if($mybb->settings['quicksmpeditor_smile'] != 0) {
-			$templatelist .= 'codebutquick,smilieinsert,smilieinsert_smilie,smilieinsert_getmore';
+			$templatelist .= 'scodebutquick,smilieinsert,smilieinsert_smilie,smilieinsert_getmore';
 		}
 		else {
-			$templatelist .= 'codebutquick';
+			$templatelist .= 'scodebutquick';
 		}
 	}
 }

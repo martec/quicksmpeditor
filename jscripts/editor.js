@@ -1,4 +1,44 @@
-editor=(function(){return{init:function(){return true;},insert_text:function(d,h){var g,f,e=(document.all)?document.all.message:((document.getElementById("afocus")!==null)?(document.getElementById("afocus").message):(document.getElementsByName("message")[0]));if(!e){return false;}if(document.selection&&document.selection.createRange){e.focus();g=document.selection.createRange();g.text=d+g.text+h;e.focus();}else{if(e.selectionStart||e.selectionStart===0){var c=e.selectionStart,b=e.selectionEnd,a=e.scrollTop;e.value=e.value.substring(0,c)+d+e.value.substring(c,b)+h+e.value.substring(b,e.value.length);if(d.charAt(d.length-2)==="="){e.selectionStart=(c+d.length-1);}else{if(c===b){e.selectionStart=b+d.length;}else{e.selectionStart=b+d.length+h.length;}}e.selectionEnd=e.selectionStart;e.scrollTop=a;e.focus();}else{e.value+=d+h;e.focus();}}}};}());
+editor = (function() {
+ 	return {
+ 		init: function() {
+ 			return true;
+ 		},
+ 		insert_text: function(d, h, i) {
+ 			var g, f, e = document.getElementById(i);
+ 			if (!e) {
+ 				return false;
+ 			}
+ 			if (document.selection && document.selection.createRange) {
+ 				e.focus();
+ 				g = document.selection.createRange();
+ 				g.text = d + g.text + h;
+ 				e.focus();
+ 			} else {
+ 				if (e.selectionStart || e.selectionStart === 0) {
+ 					var c = e.selectionStart,
+ 						b = e.selectionEnd,
+ 						a = e.scrollTop;
+ 					e.value = e.value.substring(0, c) + d + e.value.substring(c, b) + h + e.value.substring(b, e.value.length);
+ 					if (d.charAt(d.length - 2) === "=") {
+ 						e.selectionStart = (c + d.length - 1);
+ 					} else {
+ 						if (c === b) {
+ 							e.selectionStart = b + d.length;
+ 						} else {
+ 							e.selectionStart = b + d.length + h.length;
+ 						}
+ 					}
+ 					e.selectionEnd = e.selectionStart;
+ 					e.scrollTop = a;
+ 					e.focus();
+ 				} else {
+ 					e.value += d + h;
+ 					e.focus();
+ 				}
+ 			}
+ 		}
+ 	};
+ }())
 
 /**
 * Set display of page element
@@ -82,7 +122,7 @@ colorPalette = function(dir, width, height) {
 *
 * @param object el jQuery object for the palette container.
 */
-registerPalette = function(el) {
+registerPalette = function(el,area) {
 	var	orientation	= el.attr('data-orientation'),
 		height		= el.attr('data-height'),
 		width		= el.attr('data-width'),
@@ -103,7 +143,7 @@ registerPalette = function(el) {
 		var color = $(this).attr('data-color');
 
 		if (bbcode) {
-			editor.insert_text('[color=#' + color + ']', '[/color]');
+			editor.insert_text('[color=#' + color + ']', '[/color]', ''+area+'');
 		} else {
 			$(target).val(color);
 		}
@@ -115,13 +155,13 @@ registerPalette = function(el) {
 * Apply code editor to all textarea elements with data-bbcode attribute
 */
 $(function() {
-	$('#color_palette_placeholder').each(function() {
-		registerPalette($(this));
+	$('.color_palette_placeholder_message').each(function() {
+		registerPalette($(this),$(this).attr('data-local'));
 	});
 });
 
 MyBBEditor = {};
 
 MyBBEditor.insertText = function(text) {
-	editor.insert_text(text,''); return false;
+	editor.insert_text(text,'','message'); return false;
 }
