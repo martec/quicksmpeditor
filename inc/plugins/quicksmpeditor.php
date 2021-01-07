@@ -20,7 +20,7 @@ if(!defined("IN_MYBB"))
 	die("Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.");
 }
 
-define('QSE', '1.1.0');
+define('QSE', '1.1.1');
 
 // Plugin info
 function quicksmpeditor_info ()
@@ -84,10 +84,10 @@ function quicksmpeditor_is_installed()
 {
 	global $db;
 
-	$query = $db->simple_select("settinggroups", "COUNT(*) as rows", "name = 'quicksmpeditor'");
-	$rows  = $db->fetch_field($query, 'rows');
+	$query = $db->simple_select("settinggroups", "COUNT(*) as counts", "name = 'quicksmpeditor'");
+	$counts  = $db->fetch_field($query, 'counts');
 
-	return ($rows > 0);
+	return ($counts > 0);
 }
 
 function quicksmpeditor_uninstall()
